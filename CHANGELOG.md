@@ -1,3 +1,6 @@
+# 1.8.1
+* Remove ugly dividers
+
 # 1.8.0
 * Upgrade to Arcane 6
 

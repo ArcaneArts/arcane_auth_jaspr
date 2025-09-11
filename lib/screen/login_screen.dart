@@ -314,9 +314,7 @@ class _ArcaneEmailPasswordCardState extends State<ArcaneEmailPasswordCard> {
                                     passwordFocus.requestFocus();
                                   },
                                 ),
-                                Gap(4),
-                                Divider(),
-                                Gap(4),
+                                Gap(8),
                                 TextField(
                                   focusNode: passwordFocus,
                                   controller: passwordController,
@@ -402,9 +400,7 @@ class _ArcaneEmailPasswordCardState extends State<ArcaneEmailPasswordCard> {
                                     passwordFocus.requestFocus();
                                   },
                                 ),
-                                Gap(4),
-                                Divider(),
-                                Gap(4),
+                                Gap(8),
                                 TextField(
                                   focusNode: passwordFocus,
                                   controller: passwordController,
