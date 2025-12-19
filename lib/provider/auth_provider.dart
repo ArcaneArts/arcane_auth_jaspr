@@ -196,4 +196,7 @@ extension AuthContextExtension on BuildContext {
 
   /// Refresh the ID token
   Future<String?> refreshAuthToken() => JasprAuthService.instance.refreshToken();
+
+  /// Delete account and all associated data
+  Future<bool> deleteAccount() => JasprAuthService.instance.deleteAccount();
 }

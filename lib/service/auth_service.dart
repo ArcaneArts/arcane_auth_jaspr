@@ -325,6 +325,52 @@ class JasprAuthService {
     }
   }
 
+  /// Delete account from server and sign out
+  ///
+  /// This deletes all user data from the server and then signs out.
+  /// The Firebase Auth account itself is NOT deleted (that requires re-authentication).
+  Future<bool> deleteAccount() async {
+    if (_serverApiUrl == null) {
+      warn('Cannot delete account: server API URL not configured');
+      return false;
+    }
+
+    final _FirebaseUser? user = _firebase.auth().currentUser;
+    if (user == null) {
+      warn('Cannot delete account: no user signed in');
+      return false;
+    }
+
+    try {
+      verbose('Deleting account from server...');
+
+      // Get fresh ID token
+      final JSString jsToken = await user.getIdToken(true).toDart;
+      final String idToken = jsToken.toDart;
+
+      final http.Response response = await http.delete(
+        Uri.parse('$_serverApiUrl/api/auth/delete'),
+        headers: <String, String>{
+          'Authorization': 'Bearer $idToken',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        info('Account deleted from server');
+        // Sign out after deletion
+        await signOut();
+        return true;
+      } else {
+        warn('Failed to delete account: ${response.statusCode} - ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      error('Failed to delete account: $e');
+      return false;
+    }
+  }
+
   /// Parse Firebase error messages into user-friendly strings
   String _parseFirebaseError(Object error) {
     final String errorString = error.toString();
