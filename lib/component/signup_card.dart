@@ -81,8 +81,11 @@ class _ArcaneSignupCardState extends State<ArcaneSignupCard> {
   bool get _hasTerms => component.termsUrl != null || component.privacyUrl != null;
 
   Future<void> _handleSubmit() async {
+    print('[SignupCard] handleSubmit called');
+    print('[SignupCard] displayName="$_displayName", email="$_email"');
     // Validation
     if (_displayName.isEmpty) {
+      print('[SignupCard] Validation failed: displayName is empty');
       setState(() => _error = 'Please enter your name.');
       return;
     }
@@ -448,7 +451,9 @@ class _ArcaneSignupCardState extends State<ArcaneSignupCard> {
             'input': (event) {
               final dynamic target = event.target;
               if (target != null) {
-                onChanged((target as dynamic).value ?? '');
+                final String value = (target as dynamic).value ?? '';
+                print('[SignupCard] Input changed for $labelText: "$value"');
+                onChanged(value);
               }
             },
           },

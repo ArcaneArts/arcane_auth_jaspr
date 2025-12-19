@@ -101,7 +101,9 @@ class SocialSignInButton extends StatelessComponent {
       }),
       events: {
         'click': (_) {
+          print('[SocialSignInButton] Click detected, disabled=$isDisabled, hasHandler=${onPressed != null}');
           if (!isDisabled && onPressed != null) {
+            print('[SocialSignInButton] Calling onPressed handler');
             onPressed!();
           }
         },

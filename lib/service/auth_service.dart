@@ -14,6 +14,7 @@ extension type _FirebaseNamespace._(JSObject _) implements JSObject {
   external _FirebaseAuth auth();
 }
 
+/// Firebase auth namespace that contains provider classes
 extension type _FirebaseAuth._(JSObject _) implements JSObject {
   external _FirebaseUser? get currentUser;
   external JSPromise<_UserCredential> signInWithPopup(_AuthProvider provider);
@@ -47,21 +48,25 @@ extension type _UserCredential._(JSObject _) implements JSObject {
 
 extension type _AuthProvider._(JSObject _) implements JSObject {}
 
+/// Get the global firebase namespace
+@JS('firebase')
+external _FirebaseNamespace get _firebase;
+
+/// Provider classes from firebase.auth namespace
+@JS('firebase.auth.GithubAuthProvider')
 extension type _GithubAuthProvider._(JSObject _) implements _AuthProvider {
   external factory _GithubAuthProvider();
 }
 
+@JS('firebase.auth.GoogleAuthProvider')
 extension type _GoogleAuthProvider._(JSObject _) implements _AuthProvider {
   external factory _GoogleAuthProvider();
 }
 
+@JS('firebase.auth.OAuthProvider')
 extension type _OAuthProvider._(JSObject _) implements _AuthProvider {
   external factory _OAuthProvider(String providerId);
 }
-
-/// Get the global firebase namespace
-@JS('firebase')
-external _FirebaseNamespace get _firebase;
 
 /// Jaspr Authentication Service
 ///
@@ -154,13 +159,18 @@ class JasprAuthService {
 
   /// Sign in with GitHub
   Future<void> signInWithGitHub() async {
+    print('[ArcaneAuth] signInWithGitHub called');
     _updateState(const AuthState.loading());
     try {
       verbose('Signing in with GitHub...');
+      print('[ArcaneAuth] Creating GitHub provider...');
       final _GithubAuthProvider provider = _GithubAuthProvider();
+      print('[ArcaneAuth] Calling signInWithPopup...');
       await _firebase.auth().signInWithPopup(provider).toDart;
+      print('[ArcaneAuth] signInWithPopup completed');
       // Auth state listener will handle the rest
     } catch (e) {
+      print('[ArcaneAuth] GitHub sign-in error: $e');
       error('GitHub sign-in failed: $e');
       _updateState(AuthState.withError(_parseFirebaseError(e)));
     }
@@ -168,13 +178,18 @@ class JasprAuthService {
 
   /// Sign in with Google
   Future<void> signInWithGoogle() async {
+    print('[ArcaneAuth] signInWithGoogle called');
     _updateState(const AuthState.loading());
     try {
       verbose('Signing in with Google...');
+      print('[ArcaneAuth] Creating Google provider...');
       final _GoogleAuthProvider provider = _GoogleAuthProvider();
+      print('[ArcaneAuth] Calling signInWithPopup...');
       await _firebase.auth().signInWithPopup(provider).toDart;
+      print('[ArcaneAuth] signInWithPopup completed');
       // Auth state listener will handle the rest
     } catch (e) {
+      print('[ArcaneAuth] Google sign-in error: $e');
       error('Google sign-in failed: $e');
       _updateState(AuthState.withError(_parseFirebaseError(e)));
     }
