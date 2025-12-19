@@ -72,6 +72,7 @@ class ArcaneAuthProvider extends StatefulComponent {
 class _ArcaneAuthProviderState extends State<ArcaneAuthProvider> {
   late final StreamSubscription<AuthState> _subscription;
   AuthState _state = const AuthState();
+  bool _hasInitialized = false;
 
   @override
   void initState() {
@@ -96,19 +97,30 @@ class _ArcaneAuthProviderState extends State<ArcaneAuthProvider> {
     // Call user callback
     component.onAuthStateChanged?.call(newState);
 
-    // Handle redirects
-    if (newState.isAuthenticated && !previousState.isAuthenticated) {
-      // User just logged in
+    // Skip redirects on initial auth state (page load/refresh)
+    // Only redirect on actual user-initiated login/logout
+    if (!_hasInitialized) {
+      _hasInitialized = true;
+      verbose('Initial auth state received, skipping redirect');
+      return;
+    }
+
+    // Only redirect on actual state transitions (not page refreshes)
+    // previousState.isLoading means this came from a user action
+    if (newState.isAuthenticated && previousState.isLoading) {
+      // User just logged in (was loading, now authenticated)
       if (component.redirectOnLogin != null) {
         info('User authenticated, redirecting to ${component.redirectOnLogin}');
         _navigateTo(component.redirectOnLogin!);
       }
     } else if (!newState.isAuthenticated &&
-        previousState.isAuthenticated &&
-        component.redirectOnLogout != null) {
+               !newState.isLoading &&
+               previousState.isAuthenticated) {
       // User just logged out
-      info('User logged out, redirecting to ${component.redirectOnLogout}');
-      _navigateTo(component.redirectOnLogout!);
+      if (component.redirectOnLogout != null) {
+        info('User logged out, redirecting to ${component.redirectOnLogout}');
+        _navigateTo(component.redirectOnLogout!);
+      }
     }
   }
 
