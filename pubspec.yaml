@@ -1,6 +1,6 @@
 name: arcane_auth_jaspr
 description: "A Jaspr authentication library with Firebase support. Provides login/signup components and OAuth providers (GitHub, Google, Apple, Email/Password)."
-version: 1.0.0
+version: 0.5.0
 publish_to: none
 homepage: https://arcane.art
 documentation: https://tome.arcane.art
@@ -11,10 +11,9 @@ environment:
 
 dependencies:
   jaspr: ^0.22.0
-  arcane_jaspr:
-    path: ../arcane_jaspr
-  web: ^1.1.0
-  http: ^1.2.0
+  arcane_jaspr: 1.0.0
+  web: ^1.1.1
+  http: ^1.6.0
   meta: ^1.17.0
   fast_log: ^1.0.7
 
