@@ -1,375 +1,360 @@
 import 'dart:async';
-import 'dart:math';
+import 'dart:convert';
+import 'dart:js_interop';
 
-import 'package:arcane/arcane.dart';
-import 'package:arcane_auth/arcane_auth.dart';
 import 'package:fast_log/fast_log.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart' as gsi;
-import 'package:hive_flutter/adapters.dart';
-import 'package:serviced/serviced.dart';
+import 'package:http/http.dart' as http;
 
-String? get $uid => svc<AuthService>()._fbUid;
-bool get $signedIn => svc<AuthService>()._fbSignedIn;
-bool get $anonymous => svc<AuthService>()._fbAnonymous;
+import 'auth_state.dart';
 
-class AuthService extends StatelessService
-    implements AsyncStartupTasked, ArcaneAuthProvider {
-  final bool allowAnonymous;
-  final bool autoLink;
-  final Future<void> Function(UserMeta user)? onBind;
-  final Future<void> Function()? onUnbind;
-  final List<StreamSubscription> _subscriptions = [];
-  final List<ArcaneAuthUserNameHint> _nameHints = [];
-  final List<SocialSignInSiteConfig> signInConfigs;
-  late final Box _authBox;
-  late final Box _dataBox;
-  late final BehaviorSubject<AuthService> _authState;
-  bool _bound = false;
+/// Firebase Auth JS interop
+///
+/// Uses the Firebase compat SDK loaded in index.html
+extension type _FirebaseNamespace._(JSObject _) implements JSObject {
+  external _FirebaseAuth auth();
+}
 
-  AuthService(
-      {this.allowAnonymous = false,
-      this.onBind,
-      this.onUnbind,
-      this.autoLink = true,
-      this.signInConfigs = const []}) {
-    _authState = BehaviorSubject.seeded(this);
-  }
+extension type _FirebaseAuth._(JSObject _) implements JSObject {
+  external _FirebaseUser? get currentUser;
+  external JSPromise<_UserCredential> signInWithPopup(_AuthProvider provider);
+  external JSPromise<_UserCredential> signInWithEmailAndPassword(
+      String email, String password);
+  external JSPromise<_UserCredential> createUserWithEmailAndPassword(
+      String email, String password);
+  external JSPromise<JSAny?> signOut();
+  external JSPromise<JSAny?> sendPasswordResetEmail(String email);
+  external void onAuthStateChanged(JSFunction callback);
+}
 
-  Box get box => _dataBox;
-  Box get authBox => _authBox;
-  bool get _fbSignedIn => FirebaseAuth.instance.currentUser != null;
-  bool get _fbAnonymous =>
-      FirebaseAuth.instance.currentUser?.isAnonymous ?? false;
-  String? get _fbUid => FirebaseAuth.instance.currentUser?.uid;
+extension type _FirebaseUser._(JSObject _) implements JSObject {
+  external String get uid;
+  external String? get email;
+  external String? get displayName;
+  external String? get photoURL;
+  external bool get isAnonymous;
+  external bool get emailVerified;
+  external JSPromise<JSString> getIdToken([bool? forceRefresh]);
+  external JSPromise<JSAny?> updateProfile(_ProfileUpdate profile);
+}
 
-  T? getSignInConfig<T extends SocialSignInSiteConfig>() =>
-      signInConfigs.whereType<T>().firstOrNull;
+extension type _ProfileUpdate._(JSObject _) implements JSObject {
+  external factory _ProfileUpdate({String? displayName, String? photoURL});
+}
 
-  bool hasSignInConfig<T extends SocialSignInSiteConfig>() =>
-      signInConfigs.any((e) => e is T);
+extension type _UserCredential._(JSObject _) implements JSObject {
+  external _FirebaseUser? get user;
+}
 
-  Future<void> _initBox() async {
-    _dataBox = await Hive.openBox("${$appId}_auth_data");
-    _authBox = await Hive.openBox("${$appId}_auth_keys",
-        encryptionCipher: HiveAesCipher(await _genBoxKey().toList()));
-  }
+extension type _AuthProvider._(JSObject _) implements JSObject {}
 
-  Stream<int> _genBoxKey([int length = 32]) async* {
-    String grn([int length = 32]) {
-      String charset =
-          '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-.';
-      Random random = Random.secure();
-      return List.generate(
-          length, (_) => charset[random.nextInt(charset.length)]).join();
+extension type _GithubAuthProvider._(JSObject _) implements _AuthProvider {
+  external factory _GithubAuthProvider();
+}
+
+extension type _GoogleAuthProvider._(JSObject _) implements _AuthProvider {
+  external factory _GoogleAuthProvider();
+}
+
+extension type _OAuthProvider._(JSObject _) implements _AuthProvider {
+  external factory _OAuthProvider(String providerId);
+}
+
+/// Get the global firebase namespace
+@JS('firebase')
+external _FirebaseNamespace get _firebase;
+
+/// Jaspr Authentication Service
+///
+/// Provides Firebase authentication for Jaspr web applications.
+/// Uses the Firebase JS SDK loaded in the HTML page.
+class JasprAuthService {
+  static JasprAuthService? _instance;
+
+  /// Get the singleton instance
+  static JasprAuthService get instance => _instance ??= JasprAuthService._();
+
+  /// Stream controller for auth state changes
+  final StreamController<AuthState> _stateController =
+      StreamController<AuthState>.broadcast();
+
+  /// Current auth state
+  AuthState _currentState = const AuthState();
+
+  /// Server API base URL for user sync
+  String? _serverApiUrl;
+
+  JasprAuthService._();
+
+  /// Get the auth state stream
+  Stream<AuthState> get authStateStream => _stateController.stream;
+
+  /// Get the current auth state
+  AuthState get currentState => _currentState;
+
+  /// Get the current user
+  AuthUser? get currentUser => _currentState.user;
+
+  /// Whether the user is authenticated
+  bool get isAuthenticated => _currentState.isAuthenticated;
+
+  /// Initialize the auth service
+  ///
+  /// Call this once at app startup. Optionally provide a server API URL
+  /// for syncing user data to your backend.
+  void initialize({String? serverApiUrl}) {
+    _serverApiUrl = serverApiUrl;
+    verbose('JasprAuthService initializing...');
+
+    // Set up Firebase auth state listener
+    void callback(JSAny? user) {
+      _handleAuthStateChange(user as _FirebaseUser?);
     }
 
-    String a = _dataBox.get("nonce", defaultValue: grn(32 + length));
-    String b = _dataBox.get("ecnon", defaultValue: grn(16 + length));
-    int ent = 0;
-    for (int i = 0; i < length; i++) {
-      ent += i + a.codeUnitAt(i) + b.codeUnitAt(i);
-      int gdr = (ent % 694) +
-          "${a.substring((i + ent ~/ 3) % a.length)}${b.substring((i + ent ~/ 7) % b.length)}"
-              .hashCode;
-      yield ((ent ^ gdr) - i) % 256;
-      ent ~/= (i + 1);
-      ent ^= gdr;
-    }
+    _firebase.auth().onAuthStateChanged(callback.toJS);
+    info('JasprAuthService initialized');
   }
 
-  Future<void> waitForFirebaseInit() async {
-    int tick = 1;
-    bool initialized = false;
+  /// Handle Firebase auth state changes
+  Future<void> _handleAuthStateChange(_FirebaseUser? firebaseUser) async {
+    if (firebaseUser != null) {
+      verbose('Auth state changed: user signed in (${firebaseUser.uid})');
 
-    if (!initialized) {
-      try {
-        FirebaseAuth.instance.app;
-        initialized = true;
-      } catch (e, es) {
-        print(e);
+      // Get the ID token
+      final JSString jsToken = await firebaseUser.getIdToken().toDart;
+      final String idToken = jsToken.toDart;
+
+      // Create AuthUser
+      final AuthUser authUser = AuthUser(
+        uid: firebaseUser.uid,
+        email: firebaseUser.email,
+        displayName: firebaseUser.displayName,
+        photoURL: firebaseUser.photoURL,
+        idToken: idToken,
+        isAnonymous: firebaseUser.isAnonymous,
+        emailVerified: firebaseUser.emailVerified,
+      );
+
+      // Sync user to server if URL is configured
+      if (_serverApiUrl != null) {
+        await _syncUserToServer(authUser, idToken);
       }
-      warn("Waiting for Firebase to Initialize");
-      await Future.delayed(Duration(milliseconds: min(1000, 50 * (tick++))));
 
-      if (tick > 60) {
-        error("Failed to initialize Firebase");
-        throw "Failed to initialize Firebase";
-      }
-    }
-  }
-
-  @override
-  Future<void> onStartupTask() async {
-    await waitForFirebaseInit();
-    await _initBox();
-    FirebaseAuth.instance
-        .authStateChanges()
-        .map(_AuthState.of)
-        .distinct()
-        .asyncMap(_onAuthState)
-        .listen((_) {});
-
-    if (allowAnonymous) {
-      await FirebaseAuth.instance.signInAnonymously();
-    }
-
-    PrecisionStopwatch p = PrecisionStopwatch.start();
-
-    double _dl = 1;
-    while (p.getMilliseconds() < 1000) {
-      await Future.delayed(Duration(milliseconds: (_dl *= 1.1).round()));
-      _dl += 80;
-
-      if ($signedIn) {
-        success("Caught Sign in after ${p.getMilliseconds()}ms");
-        break;
-      }
-    }
-  }
-
-  void _log(String message) => verbose("[ArcaneAuth]: $message");
-  void _logError(String message) => error("[ArcaneAuth]: $message");
-  void _logWarn(String message) => warn("[ArcaneAuth]: $message");
-  void _logSuccess(String message) => success("[ArcaneAuth]: $message");
-
-  Future<void> _onAuthState(_AuthState state) async {
-    _log("Auth State: $state");
-    if (state.isSignedIn) {
-      try {
-        await bind(state.uid!);
-      } catch (e, es) {
-        _logError("Error Binding $state: $e $es");
-      }
+      _updateState(AuthState.authenticated(authUser));
     } else {
-      try {
-        await unbind();
-      } catch (e, es) {
-        _logError("Error Unbinding $state: $e $es");
+      verbose('Auth state changed: user signed out');
+      _updateState(const AuthState.unauthenticated());
+    }
+  }
+
+  /// Update the auth state
+  void _updateState(AuthState newState) {
+    _currentState = newState;
+    _stateController.add(newState);
+  }
+
+  /// Sign in with GitHub
+  Future<void> signInWithGitHub() async {
+    _updateState(const AuthState.loading());
+    try {
+      verbose('Signing in with GitHub...');
+      final _GithubAuthProvider provider = _GithubAuthProvider();
+      await _firebase.auth().signInWithPopup(provider).toDart;
+      // Auth state listener will handle the rest
+    } catch (e) {
+      error('GitHub sign-in failed: $e');
+      _updateState(AuthState.withError(_parseFirebaseError(e)));
+    }
+  }
+
+  /// Sign in with Google
+  Future<void> signInWithGoogle() async {
+    _updateState(const AuthState.loading());
+    try {
+      verbose('Signing in with Google...');
+      final _GoogleAuthProvider provider = _GoogleAuthProvider();
+      await _firebase.auth().signInWithPopup(provider).toDart;
+      // Auth state listener will handle the rest
+    } catch (e) {
+      error('Google sign-in failed: $e');
+      _updateState(AuthState.withError(_parseFirebaseError(e)));
+    }
+  }
+
+  /// Sign in with Apple (placeholder - requires setup)
+  Future<void> signInWithApple() async {
+    _updateState(const AuthState.loading());
+    try {
+      verbose('Signing in with Apple...');
+      final _OAuthProvider provider = _OAuthProvider('apple.com');
+      await _firebase.auth().signInWithPopup(provider).toDart;
+      // Auth state listener will handle the rest
+    } catch (e) {
+      error('Apple sign-in failed: $e');
+      _updateState(AuthState.withError(_parseFirebaseError(e)));
+    }
+  }
+
+  /// Sign in with email and password
+  Future<void> signInWithEmail(String email, String password) async {
+    _updateState(const AuthState.loading());
+    try {
+      verbose('Signing in with email...');
+      await _firebase.auth().signInWithEmailAndPassword(email, password).toDart;
+      // Auth state listener will handle the rest
+    } catch (e) {
+      error('Email sign-in failed: $e');
+      _updateState(AuthState.withError(_parseFirebaseError(e)));
+    }
+  }
+
+  /// Register a new user with email and password
+  Future<void> registerWithEmail(
+      String email, String password, String displayName) async {
+    _updateState(const AuthState.loading());
+    try {
+      verbose('Registering with email...');
+      final _UserCredential credential = await _firebase
+          .auth()
+          .createUserWithEmailAndPassword(email, password)
+          .toDart;
+
+      // Update display name
+      if (credential.user != null) {
+        await credential.user!
+            .updateProfile(_ProfileUpdate(displayName: displayName))
+            .toDart;
       }
+
+      // Auth state listener will handle the rest
+    } catch (e) {
+      error('Email registration failed: $e');
+      _updateState(AuthState.withError(_parseFirebaseError(e)));
     }
   }
 
-  Stream<AuthService> get stream => _authState.stream;
-
-  StreamSubscription<T> listen<T>(Stream<T> stream, void Function(T) onData) {
-    StreamSubscription<T> s = stream.listen(onData);
-    _subscriptions.add(s);
-    return s;
-  }
-
-  Future<void> signOut(BuildContext context) async {
-    Navigator.of(context).popUntil((route) => route.isFirst);
-
-    _log("Signing Out");
+  /// Send password reset email
+  Future<void> sendPasswordResetEmail(String email) async {
     try {
-      await FirebaseAuth.instance.signOut();
-    } catch (e, es) {
-      error("Failed to sign out of Firebase $e $es");
+      verbose('Sending password reset email to $email...');
+      await _firebase.auth().sendPasswordResetEmail(email).toDart;
+      success('Password reset email sent');
+    } catch (e) {
+      error('Password reset failed: $e');
+      throw _parseFirebaseError(e);
     }
+  }
+
+  /// Sign out
+  Future<void> signOut() async {
     try {
-      await gsi.GoogleSignIn.standard().signOut();
-    } catch (e) {}
-    _logSuccess("Successfully Signed Out");
+      verbose('Signing out...');
+      await _firebase.auth().signOut().toDart;
+      // Auth state listener will handle the rest
+    } catch (e) {
+      error('Sign out failed: $e');
+      _updateState(AuthState.withError(_parseFirebaseError(e)));
+    }
   }
 
-  Future<void> linkCredential(AuthCredential credential) async {
-    _log("Linking Credential <${credential.providerId}>");
-    await FirebaseAuth.instance.currentUser!
-        .linkWithCredential(credential)
-        .then(processUserCredential);
-    _logSuccess(
-        "Successfully Linked Credential <${credential.providerId}> to ${$uid}");
+  /// Refresh the ID token
+  Future<String?> refreshToken() async {
+    final _FirebaseUser? user = _firebase.auth().currentUser;
+    if (user == null) return null;
+
+    try {
+      final JSString jsToken = await user.getIdToken(true).toDart;
+      final String token = jsToken.toDart;
+      _currentState = _currentState.copyWith(
+        user: _currentState.user?.copyWith(idToken: token),
+      );
+      return token;
+    } catch (e) {
+      error('Token refresh failed: $e');
+      return null;
+    }
   }
 
-  Future<void> linkPopup(AuthProvider provider) async {
-    _log("Linking Popup <${provider.providerId}>");
-    await FirebaseAuth.instance.currentUser!
-        .linkWithPopup(provider)
-        .then(processUserCredential);
-    _logSuccess(
-        "Successfully Linked Popup <${provider.providerId}> to ${$uid}");
+  /// Sync user to server
+  Future<void> _syncUserToServer(AuthUser user, String idToken) async {
+    if (_serverApiUrl == null) return;
+
+    try {
+      verbose('Syncing user to server...');
+      final http.Response response = await http.post(
+        Uri.parse('$_serverApiUrl/api/auth/sync'),
+        headers: <String, String>{
+          'Authorization': 'Bearer $idToken',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(<String, dynamic>{
+          'uid': user.uid,
+          'email': user.email,
+          'displayName': user.displayName,
+          'photoURL': user.photoURL,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data =
+            jsonDecode(response.body) as Map<String, dynamic>;
+        if (data['created'] == true) {
+          info('New user created on server: ${user.uid}');
+        } else {
+          verbose('User synced to server: ${user.uid}');
+        }
+      } else {
+        warn('Failed to sync user to server: ${response.statusCode}');
+      }
+    } catch (e) {
+      warn('Failed to sync user to server: $e');
+    }
   }
 
-  Future<void> processUserCredential(UserCredential credential) async {
-    Map<String, dynamic> profile = credential.additionalUserInfo?.profile ?? {};
-    svc<AuthService>().addUsernameHint(ArcaneAuthUserNameHint(
-        firstName: profile["given_name"], lastName: profile["family_name"]));
-  }
+  /// Parse Firebase error messages into user-friendly strings
+  String _parseFirebaseError(Object error) {
+    final String errorString = error.toString();
 
-  Future<void> signInWithPopup(AuthProvider provider) async {
-    _log("Signing In with Popup <${provider.providerId}>");
-    if ($signedIn && autoLink) {
-      await linkPopup(provider);
-      _logSuccess(
-          "Successfully Signed In & Linked with Popup <${provider.providerId}> with ${$uid}");
-      await bind($uid!);
-      return;
+    // Common Firebase Auth error codes
+    if (errorString.contains('auth/user-not-found')) {
+      return 'No account found with this email address.';
+    }
+    if (errorString.contains('auth/wrong-password')) {
+      return 'Incorrect password. Please try again.';
+    }
+    if (errorString.contains('auth/email-already-in-use')) {
+      return 'An account already exists with this email address.';
+    }
+    if (errorString.contains('auth/weak-password')) {
+      return 'Password is too weak. Please use a stronger password.';
+    }
+    if (errorString.contains('auth/invalid-email')) {
+      return 'Please enter a valid email address.';
+    }
+    if (errorString.contains('auth/popup-closed-by-user')) {
+      return 'Sign-in was cancelled.';
+    }
+    if (errorString.contains('auth/cancelled-popup-request')) {
+      return 'Sign-in was cancelled.';
+    }
+    if (errorString.contains('auth/popup-blocked')) {
+      return 'Pop-up was blocked. Please allow pop-ups for this site.';
+    }
+    if (errorString.contains('auth/network-request-failed')) {
+      return 'Network error. Please check your connection.';
+    }
+    if (errorString.contains('auth/too-many-requests')) {
+      return 'Too many attempts. Please try again later.';
+    }
+    if (errorString.contains('auth/invalid-credential')) {
+      return 'Invalid credentials. Please try again.';
     }
 
-    await FirebaseAuth.instance
-        .signInWithPopup(provider)
-        .then(processUserCredential);
-    _logSuccess(
-        "Successfully Signed In with Popup <${provider.providerId}> as ${$uid}");
+    // Default error message
+    return 'An error occurred. Please try again.';
   }
 
-  Future<void> signInWithEmailPassword(
-      {required String email, required String password}) async {
-    _log("Signing In with Email <$email>");
-
-    await FirebaseAuth.instance
-        .signInWithEmailAndPassword(email: email, password: password)
-        .then(processUserCredential);
-    _logSuccess("Successfully Signed In with Email <$email> as ${$uid}");
+  /// Dispose the service
+  void dispose() {
+    _stateController.close();
   }
-
-  Future<void> registerWithEmailPassword(
-      {required String email, required String password}) async {
-    _log("Signing In with Email <$email>");
-
-    if ($signedIn && autoLink) {
-      await linkCredential(
-          EmailAuthProvider.credential(email: email, password: password));
-      _logSuccess(
-          "Successfully Registered & Linked with Email <$email> with ${$uid}");
-      await bind($uid!);
-      return;
-    }
-
-    await FirebaseAuth.instance
-        .createUserWithEmailAndPassword(email: email, password: password)
-        .then(processUserCredential);
-    _logSuccess("Successfully Registered In with Email <$email> as ${$uid}");
-  }
-
-  Future<void> signIn(AuthCredential credential) async {
-    _log("Signing In with Credential <${credential.providerId}>");
-    if ($signedIn && autoLink) {
-      await linkCredential(credential);
-      _logSuccess(
-          "Successfully Signed In & Linked with Credential <${credential.providerId}> with ${$uid}");
-      await bind($uid!);
-      return;
-    }
-
-    await FirebaseAuth.instance
-        .signInWithCredential(credential)
-        .then(processUserCredential);
-    _logSuccess(
-        "Successfully Signed In with Credential <${credential.providerId}> as ${$uid}");
-  }
-
-  Future<void> bind(String uid) async {
-    if (_bound) {
-      _logWarn("Already Bound, unbinding first");
-      await unbind();
-    }
-
-    _log("Binding to $uid");
-    await onBind
-        ?.call(UserMeta(FirebaseAuth.instance.currentUser!, _nameHints));
-    _nameHints.clear();
-    _bound = true;
-    _authState.add(this);
-    _logSuccess("Successfully Bound to $uid");
-  }
-
-  void addUsernameHint(ArcaneAuthUserNameHint hint) => _nameHints.add(hint);
-
-  Future<void> unbind() async {
-    if (!_bound) {
-      _logWarn("Not Bound, skipping unbind");
-      return;
-    }
-
-    _log("Unbinding");
-    await onUnbind?.call();
-    for (var s in _subscriptions) {
-      s.cancel();
-    }
-    _subscriptions.clear();
-    _bound = false;
-
-    if (allowAnonymous) {
-      FirebaseAuth.instance.signInAnonymously().then(processUserCredential);
-    } else {
-      _authState.add(this);
-    }
-
-    _logSuccess("Successfully Unbound");
-  }
-
-  @override
-  Future<void> signInWithProvider(
-          BuildContext context, ArcaneSignInProviderType type) =>
-      type.signIn(context);
-}
-
-class _AuthState {
-  final String? uid;
-  final bool anonymous;
-
-  _AuthState(this.uid, this.anonymous);
-
-  _AuthState.of(User? user)
-      : uid = user?.uid,
-        anonymous = user?.isAnonymous ?? false;
-
-  bool get isSignedIn => uid != null;
-
-  @override
-  String toString() {
-    return '(uid: $uid, anonymous: $anonymous)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is _AuthState &&
-        other.uid == uid &&
-        other.anonymous == anonymous;
-  }
-
-  @override
-  int get hashCode => uid.hashCode ^ anonymous.hashCode;
-}
-
-extension XArcaneSignInProviderType on ArcaneSignInProviderType {
-  Future<void> signIn(BuildContext context) => switch (this) {
-        ArcaneSignInProviderType.apple =>
-          ArcaneAppleSignInProvider.signInWithApple(context),
-        ArcaneSignInProviderType.google =>
-          ArcaneGoogleSignInProvider.signInWithGoogle(context),
-        ArcaneSignInProviderType.facebook =>
-          ArcaneFacebookSignInProvider.signInWithFacebook(context),
-        ArcaneSignInProviderType.microsoft =>
-          ArcaneMicrosoftSignInProvider.signInWithMicrosoft(context),
-        ArcaneSignInProviderType.github =>
-          ArcaneGitHubSignInProvider.signInWithGitHub(context), // Add this line
-      };
-}
-
-extension XAuthCredentialBind on SocialSignInResultInterface {
-  AuthCredential get credential => switch (this) {
-        (GoogleSignInResult r) => GoogleAuthProvider.credential(
-            accessToken: r.accessToken,
-            idToken: r.idToken,
-          ),
-        (AppleSignInResult r) => AppleAuthProvider.credentialWithIDToken(
-            r.idToken,
-            r.nonce,
-            AppleFullPersonName(
-                // TODO UNHANDLED
-                )),
-        (FacebookSignInResult r) =>
-          FacebookAuthProvider.credential(r.accessToken),
-        (MicrosoftSignInResult r) =>
-          OAuthProvider('microsoft.com').credential(accessToken: r.accessToken),
-        (GitHubSignInResult r) => GithubAuthProvider.credential(
-            r.accessToken), // NEW: Convert GitHub token
-        _ => throw UnimplementedError(
-            "Unknown/Unhandled SocialSignInResultInterface ${runtimeType}")
-      };
 }
