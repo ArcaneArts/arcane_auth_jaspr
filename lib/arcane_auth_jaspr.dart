@@ -80,3 +80,22 @@ export 'button/apple_button.dart';
 // Utilities
 // ============================================================================
 export 'util/password_policy.dart';
+
+// ============================================================================
+// Layout
+// ============================================================================
+export 'layout/auth_split_layout.dart';
+
+// ============================================================================
+// Form Components
+// ============================================================================
+export 'form/auth_input.dart';
+export 'form/auth_button.dart';
+export 'form/auth_divider.dart';
+export 'form/auth_social_row.dart';
+export 'form/auth_form_card.dart';
+
+// ============================================================================
+// View Components
+// ============================================================================
+export 'view/auth_branding_panel.dart';
