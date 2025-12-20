@@ -78,7 +78,7 @@ class AuthSplitLayout extends StatelessComponent {
                 'width': '60%',
                 'height': '60%',
                 'background':
-                    'radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, transparent 70%)',
+                    'radial-gradient(circle, var(--qn-glow-light, rgba(5, 150, 105, 0.1)) 0%, transparent 70%)',
               }),
               [],
             ),

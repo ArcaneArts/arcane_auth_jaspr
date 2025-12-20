@@ -128,7 +128,7 @@ class AuthBrandingPanel extends StatelessComponent {
             'width': '20px',
             'height': '20px',
             'border-radius': '50%',
-            'background': 'rgba(16, 185, 129, 0.15)',
+            'background': 'var(--qn-glow-light, rgba(5, 150, 105, 0.1))',
             'display': 'flex',
             'align-items': 'center',
             'justify-content': 'center',
@@ -137,7 +137,7 @@ class AuthBrandingPanel extends StatelessComponent {
           }),
           [
             RawText('''
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="color: var(--qn-primary, #059669)">
                 <polyline points="20 6 9 17 4 12"></polyline>
               </svg>
             '''),
@@ -192,7 +192,7 @@ class AuthBrandingPanel extends StatelessComponent {
                   'width': '36px',
                   'height': '36px',
                   'border-radius': '50%',
-                  'background': 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  'background': 'var(--qn-gradient, linear-gradient(135deg, #059669 0%, #0891B2 100%))',
                   'display': 'flex',
                   'align-items': 'center',
                   'justify-content': 'center',

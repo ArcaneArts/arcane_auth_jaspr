@@ -89,10 +89,10 @@ class AuthButton extends StatelessComponent {
       case AuthButtonVariant.primary:
         return {
           ...baseStyles,
-          'background': 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+          'background': 'var(--qn-gradient, linear-gradient(135deg, #059669 0%, #0891B2 100%))',
           'color': '#ffffff',
           'border': 'none',
-          'box-shadow': '0 0 20px rgba(16, 185, 129, 0.3)',
+          'box-shadow': '0 0 20px var(--qn-glow, rgba(5, 150, 105, 0.35))',
         };
 
       case AuthButtonVariant.secondary:
@@ -130,7 +130,7 @@ class AuthButton extends StatelessComponent {
             'border': '2px solid transparent',
             'border-top-color': variant == AuthButtonVariant.primary
                 ? '#ffffff'
-                : '#10b981',
+                : 'var(--qn-primary, #059669)',
             'border-radius': '50%',
             'animation': 'spin 0.8s linear infinite',
           }),
