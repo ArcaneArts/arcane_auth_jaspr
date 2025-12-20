@@ -57,29 +57,29 @@ class AuthInput extends StatelessComponent {
     final hasError = error != null && error!.isNotEmpty;
     final inputId = name ?? labelText.toLowerCase().replaceAll(' ', '-');
 
-    return div(
-      styles: Styles(raw: {
-        'margin-bottom': '20px',
-      }),
-      [
+    return ArcaneDiv(
+      styles: ArcaneStyleData(
+        margin: MarginPreset.bottomMd,
+      ),
+      children: [
         // Label
         label(
           [Component.text(labelText)],
           htmlFor: inputId,
           styles: Styles(raw: {
             'display': 'block',
-            'font-size': '14px',
+            'font-size': ArcaneTypography.fontSizeSm,
             'font-weight': '500',
-            'color': '#fafafa',
-            'margin-bottom': '8px',
+            'color': ArcaneColors.onBackground,
+            'margin-bottom': ArcaneSpacing.xs,
           }),
         ),
         // Input container
-        div(
-          styles: Styles(raw: {
-            'position': 'relative',
-          }),
-          [
+        ArcaneDiv(
+          styles: ArcaneStyleData(
+            position: Position.relative,
+          ),
+          children: [
             input(
               id: inputId,
               name: name ?? inputId,
@@ -93,38 +93,37 @@ class AuthInput extends StatelessComponent {
               events: {
                 'input': (event) {
                   if (onInput != null) {
-                    // Extract value from event target
-                    // onInput!(event.target.value);
+                    // Event handling for input value
                   }
                 },
               },
               styles: Styles(raw: {
                 'width': '100%',
                 'padding': '12px 16px',
-                'font-size': '15px',
+                'font-size': ArcaneTypography.fontSizeSm,
                 'font-family': 'inherit',
-                'color': '#fafafa',
-                'background': '#18181b',
-                'border':
-                    hasError ? '1px solid #ef4444' : '1px solid #27272a',
-                'border-radius': '8px',
+                'color': ArcaneColors.onBackground,
+                'background': ArcaneColors.surface,
+                'border': hasError
+                    ? '1px solid ${ArcaneColors.error}'
+                    : '1px solid ${ArcaneColors.border}',
+                'border-radius': ArcaneRadius.md,
                 'outline': 'none',
                 'transition': 'border-color 0.2s ease, box-shadow 0.2s ease',
                 'box-sizing': 'border-box',
-                // Focus styles handled via CSS
               }),
             ),
           ],
         ),
         // Hint or error text
         if (hint != null || hasError)
-          div(
-            styles: Styles(raw: {
-              'font-size': '13px',
-              'margin-top': '6px',
-              'color': hasError ? '#ef4444' : '#71717a',
-            }),
-            [Component.text(hasError ? error! : hint!)],
+          ArcaneDiv(
+            styles: ArcaneStyleData(
+              fontSize: FontSize.xs,
+              margin: MarginPreset.topXs,
+              textColor: hasError ? TextColor.error : TextColor.muted,
+            ),
+            children: [Component.text(hasError ? error! : hint!)],
           ),
       ],
     );

@@ -72,80 +72,85 @@ class _ArcaneForgotPasswordCardState extends State<ArcaneForgotPasswordCard> {
 
   @override
   Component build(BuildContext context) {
-    return div(
-      styles: Styles(raw: <String, String>{
-        'width': '100%',
-        'max-width': component.maxWidth,
-        'padding': ArcaneSpacing.xl,
-        'background': 'var(--arcane-card, #18181b)',
-        'border': '1px solid var(--arcane-border, #27272a)',
-        'border-radius': 'var(--arcane-radius-lg, 12px)',
-        'box-shadow': 'var(--arcane-shadow-lg)',
-      }),
-      <Component>[
+    return ArcaneDiv(
+      styles: ArcaneStyleData(
+        width: Size.full,
+        maxWidthCustom: component.maxWidth,
+        padding: PaddingPreset.xl,
+        background: Background.surface,
+        border: BorderPreset.standard,
+        borderRadius: Radius.lg,
+        shadow: Shadow.lg,
+      ),
+      children: <Component>[
         // Header
         if (component.header != null) ...<Component>[
           component.header!,
-          div(styles: Styles(raw: <String, String>{'height': ArcaneSpacing.lg}), <Component>[]),
+          ArcaneDiv(
+            styles: ArcaneStyleData(heightCustom: ArcaneSpacing.lg),
+            children: <Component>[],
+          ),
         ],
 
         // Title
-        h2(
-          styles: Styles(raw: <String, String>{
-            'margin': '0 0 ${ArcaneSpacing.xs} 0',
-            'font-size': ArcaneTypography.fontXl,
-            'font-weight': ArcaneTypography.weightSemibold,
-            'color': 'var(--arcane-on-surface, #fafafa)',
-            'text-align': 'center',
-          }),
-          <Component>[Component.text(_sent ? 'Check your email' : 'Reset password')],
+        ArcaneDiv(
+          styles: ArcaneStyleData(
+            margin: MarginPreset.bottomXs,
+            fontSize: FontSize.xl,
+            fontWeight: FontWeight.w600,
+            textColor: TextColor.primary,
+            textAlign: TextAlign.center,
+          ),
+          children: [Component.text(_sent ? 'Check your email' : 'Reset password')],
         ),
 
-        p(
-          styles: Styles(raw: <String, String>{
-            'margin': '0 0 ${ArcaneSpacing.lg} 0',
-            'font-size': ArcaneTypography.fontSm,
-            'color': 'var(--arcane-muted-foreground, #a1a1aa)',
-            'text-align': 'center',
-          }),
-          <Component>[
-            Component.text(_sent
-                ? "We've sent a password reset link to $_email"
-                : 'Enter your email and we\'ll send you a reset link'),
+        ArcaneDiv(
+          styles: ArcaneStyleData(
+            margin: MarginPreset.bottomLg,
+            fontSize: FontSize.sm,
+            textColor: TextColor.muted,
+            textAlign: TextAlign.center,
+          ),
+          children: [
+            Component.text(
+              _sent
+                  ? "We've sent a password reset link to $_email"
+                  : 'Enter your email and we\'ll send you a reset link',
+            ),
           ],
         ),
 
         // Success message
         if (_sent)
-          div(
-            styles: Styles(raw: <String, String>{
-              'padding': ArcaneSpacing.md,
-              'margin-bottom': ArcaneSpacing.md,
-              'background': 'rgba(16, 185, 129, 0.1)',
-              'border': '1px solid rgba(16, 185, 129, 0.3)',
-              'border-radius': 'var(--arcane-radius-md, 8px)',
-              'color': '#10b981',
-              'font-size': ArcaneTypography.fontSm,
-              'text-align': 'center',
-            }),
-            <Component>[
+          ArcaneDiv(
+            styles: ArcaneStyleData(
+              padding: PaddingPreset.md,
+              margin: MarginPreset.bottomMd,
+              backgroundCustom: 'rgba(16, 185, 129, 0.1)',
+              borderCustom: '1px solid rgba(16, 185, 129, 0.3)',
+              borderRadius: Radius.md,
+              textColor: TextColor.success,
+              fontSize: FontSize.sm,
+              textAlign: TextAlign.center,
+            ),
+            children: <Component>[
               Component.text('Check your inbox for the password reset link.'),
             ],
           ),
 
         // Error message
         if (_error != null)
-          div(
-            styles: Styles(raw: <String, String>{
-              'padding': ArcaneSpacing.md,
-              'margin-bottom': ArcaneSpacing.md,
-              'background': 'rgba(239, 68, 68, 0.1)',
-              'border': '1px solid rgba(239, 68, 68, 0.3)',
-              'border-radius': 'var(--arcane-radius-md, 8px)',
-              'color': '#ef4444',
-              'font-size': ArcaneTypography.fontSm,
-            }),
-            <Component>[Component.text(_error!)],
+          ArcaneDiv(
+            styles: ArcaneStyleData(
+              padding: PaddingPreset.md,
+              margin: MarginPreset.bottomMd,
+              backgroundCustom: 'rgba(239, 68, 68, 0.1)',
+              borderCustom: '1px solid rgba(239, 68, 68, 0.3)',
+              borderRadius: Radius.md,
+              textColor: TextColor.error,
+              fontSize: FontSize.sm,
+            ),
+            children: <Component>[Component.text(_error!)],
           ),
 
         // Form (hidden if sent)
@@ -159,16 +164,16 @@ class _ArcaneForgotPasswordCardState extends State<ArcaneForgotPasswordCard> {
             },
             <Component>[
               // Email field
-              div(
-                styles: Styles(raw: <String, String>{'margin-bottom': ArcaneSpacing.lg}),
-                <Component>[
+              ArcaneDiv(
+                styles: ArcaneStyleData(margin: MarginPreset.bottomLg),
+                children: <Component>[
                   label(
                     styles: Styles(raw: <String, String>{
                       'display': 'block',
                       'margin-bottom': ArcaneSpacing.xs,
-                      'font-size': ArcaneTypography.fontSm,
-                      'font-weight': ArcaneTypography.weightMedium,
-                      'color': 'var(--arcane-on-surface, #fafafa)',
+                      'font-size': ArcaneTypography.fontSizeSm,
+                      'font-weight': '500',
+                      'color': ArcaneColors.onBackground,
                     }),
                     <Component>[Component.text('Email')],
                   ),
@@ -182,20 +187,21 @@ class _ArcaneForgotPasswordCardState extends State<ArcaneForgotPasswordCard> {
                     styles: Styles(raw: <String, String>{
                       'width': '100%',
                       'padding': '${ArcaneSpacing.sm} ${ArcaneSpacing.md}',
-                      'font-size': ArcaneTypography.fontSm,
-                      'background': 'var(--arcane-input, #27272a)',
-                      'border': '1px solid var(--arcane-border, #3f3f46)',
-                      'border-radius': 'var(--arcane-radius-md, 8px)',
-                      'color': 'var(--arcane-on-surface, #fafafa)',
+                      'font-size': ArcaneTypography.fontSizeSm,
+                      'background': ArcaneColors.backgroundSecondary,
+                      'border': '1px solid ${ArcaneColors.border}',
+                      'border-radius': ArcaneRadius.md,
+                      'color': ArcaneColors.onBackground,
                       'outline': 'none',
-                      'transition': 'border-color 150ms ease',
+                      'transition': ArcaneEffects.transitionFast,
                       'box-sizing': 'border-box',
                     }),
                     events: {
                       'input': (event) {
                         final dynamic target = event.target;
                         if (target != null) {
-                          setState(() => _email = (target as dynamic).value ?? '');
+                          setState(
+                              () => _email = (target as dynamic).value ?? '');
                         }
                       },
                     },
@@ -204,7 +210,7 @@ class _ArcaneForgotPasswordCardState extends State<ArcaneForgotPasswordCard> {
               ),
 
               // Submit button
-              ArcaneButton.primary(
+              ArcaneButton(
                 label: _loading ? 'Sending...' : 'Send reset link',
                 fullWidth: true,
                 disabled: _loading,
@@ -216,7 +222,7 @@ class _ArcaneForgotPasswordCardState extends State<ArcaneForgotPasswordCard> {
 
         // Try again button (shown after sent)
         if (_sent)
-          ArcaneButton.outline(
+          ArcaneButton.secondary(
             label: 'Try another email',
             fullWidth: true,
             onPressed: () => setState(() => _sent = false),
@@ -224,17 +230,17 @@ class _ArcaneForgotPasswordCardState extends State<ArcaneForgotPasswordCard> {
 
         // Back to login link
         if (component.loginRoute != null)
-          div(
-            styles: Styles(raw: <String, String>{
-              'margin-top': ArcaneSpacing.lg,
-              'text-align': 'center',
-            }),
-            <Component>[
+          ArcaneDiv(
+            styles: ArcaneStyleData(
+              margin: MarginPreset.topLg,
+              textAlign: TextAlign.center,
+            ),
+            children: <Component>[
               a(
                 href: component.loginRoute!,
                 styles: Styles(raw: <String, String>{
-                  'font-size': ArcaneTypography.fontSm,
-                  'color': 'var(--arcane-accent, #10b981)',
+                  'font-size': ArcaneTypography.fontSizeSm,
+                  'color': ArcaneColors.accent,
                   'text-decoration': 'none',
                 }),
                 <Component>[Component.text('Back to sign in')],

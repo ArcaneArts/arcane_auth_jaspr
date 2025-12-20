@@ -80,23 +80,23 @@ class AuthGuard extends StatelessComponent {
   }
 
   Component _buildDefaultLoader() {
-    return div(
-      styles: Styles(raw: <String, String>{
-        'display': 'flex',
-        'align-items': 'center',
-        'justify-content': 'center',
-        'height': '100vh',
-        'width': '100%',
-        'background': 'var(--arcane-background, #09090b)',
-      }),
-      <Component>[
+    return ArcaneDiv(
+      styles: ArcaneStyleData(
+        display: Display.flex,
+        alignItems: AlignItems.center,
+        justifyContent: JustifyContent.center,
+        height: Size.screen,
+        width: Size.full,
+        background: Background.background,
+      ),
+      children: <Component>[
         div(
           styles: Styles(raw: <String, String>{
             'width': '40px',
             'height': '40px',
-            'border': '3px solid var(--arcane-border, #27272a)',
-            'border-top-color': 'var(--arcane-accent, #10b981)',
-            'border-radius': '50%',
+            'border': '3px solid ${ArcaneColors.border}',
+            'border-top-color': ArcaneColors.accent,
+            'border-radius': ArcaneRadius.full,
             'animation': 'arcane-spin 0.75s linear infinite',
           }),
           <Component>[],
@@ -155,23 +155,23 @@ class GuestGuard extends StatelessComponent {
   }
 
   Component _buildDefaultLoader() {
-    return div(
-      styles: Styles(raw: <String, String>{
-        'display': 'flex',
-        'align-items': 'center',
-        'justify-content': 'center',
-        'height': '100vh',
-        'width': '100%',
-        'background': 'var(--arcane-background, #09090b)',
-      }),
-      <Component>[
+    return ArcaneDiv(
+      styles: ArcaneStyleData(
+        display: Display.flex,
+        alignItems: AlignItems.center,
+        justifyContent: JustifyContent.center,
+        height: Size.screen,
+        width: Size.full,
+        background: Background.background,
+      ),
+      children: <Component>[
         div(
           styles: Styles(raw: <String, String>{
             'width': '40px',
             'height': '40px',
-            'border': '3px solid var(--arcane-border, #27272a)',
-            'border-top-color': 'var(--arcane-accent, #10b981)',
-            'border-radius': '50%',
+            'border': '3px solid ${ArcaneColors.border}',
+            'border-top-color': ArcaneColors.accent,
+            'border-radius': ArcaneRadius.full,
             'animation': 'arcane-spin 0.75s linear infinite',
           }),
           <Component>[],

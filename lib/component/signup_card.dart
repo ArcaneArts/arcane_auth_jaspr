@@ -78,14 +78,12 @@ class _ArcaneSignupCardState extends State<ArcaneSignupCard> {
   bool get _hasAppleMethod => component.methods.contains(AuthMethod.apple);
   bool get _hasSocialMethods =>
       _hasGithubMethod || _hasGoogleMethod || _hasAppleMethod;
-  bool get _hasTerms => component.termsUrl != null || component.privacyUrl != null;
+  bool get _hasTerms =>
+      component.termsUrl != null || component.privacyUrl != null;
 
   Future<void> _handleSubmit() async {
-    print('[SignupCard] handleSubmit called');
-    print('[SignupCard] displayName="$_displayName", email="$_email"');
     // Validation
     if (_displayName.isEmpty) {
-      print('[SignupCard] Validation failed: displayName is empty');
       setState(() => _error = 'Please enter your name.');
       return;
     }
@@ -133,69 +131,72 @@ class _ArcaneSignupCardState extends State<ArcaneSignupCard> {
 
   @override
   Component build(BuildContext context) {
-    return div(
-      styles: Styles(raw: <String, String>{
-        'width': '100%',
-        'max-width': component.maxWidth,
-        'padding': ArcaneSpacing.xl,
-        'background': 'var(--arcane-card, #18181b)',
-        'border': '1px solid var(--arcane-border, #27272a)',
-        'border-radius': 'var(--arcane-radius-lg, 12px)',
-        'box-shadow': 'var(--arcane-shadow-lg)',
-      }),
-      <Component>[
+    return ArcaneDiv(
+      styles: ArcaneStyleData(
+        width: Size.full,
+        maxWidthCustom: component.maxWidth,
+        padding: PaddingPreset.xl,
+        background: Background.surface,
+        border: BorderPreset.standard,
+        borderRadius: Radius.lg,
+        shadow: Shadow.lg,
+      ),
+      children: <Component>[
         // Header
         if (component.header != null) ...<Component>[
           component.header!,
-          div(styles: Styles(raw: <String, String>{'height': ArcaneSpacing.lg}), <Component>[]),
+          ArcaneDiv(
+            styles: ArcaneStyleData(heightCustom: ArcaneSpacing.lg),
+            children: <Component>[],
+          ),
         ],
 
         // Title
-        h2(
-          styles: Styles(raw: <String, String>{
-            'margin': '0 0 ${ArcaneSpacing.xs} 0',
-            'font-size': ArcaneTypography.fontXl,
-            'font-weight': ArcaneTypography.weightSemibold,
-            'color': 'var(--arcane-on-surface, #fafafa)',
-            'text-align': 'center',
-          }),
-          <Component>[Component.text('Create an account')],
+        ArcaneDiv(
+          styles: ArcaneStyleData(
+            margin: MarginPreset.bottomXs,
+            fontSize: FontSize.xl,
+            fontWeight: FontWeight.w600,
+            textColor: TextColor.primary,
+            textAlign: TextAlign.center,
+          ),
+          children: [Component.text('Create an account')],
         ),
 
-        p(
-          styles: Styles(raw: <String, String>{
-            'margin': '0 0 ${ArcaneSpacing.lg} 0',
-            'font-size': ArcaneTypography.fontSm,
-            'color': 'var(--arcane-muted-foreground, #a1a1aa)',
-            'text-align': 'center',
-          }),
-          <Component>[Component.text('Get started with your free account')],
+        ArcaneDiv(
+          styles: ArcaneStyleData(
+            margin: MarginPreset.bottomLg,
+            fontSize: FontSize.sm,
+            textColor: TextColor.muted,
+            textAlign: TextAlign.center,
+          ),
+          children: [Component.text('Get started with your free account')],
         ),
 
         // Error message
         if (_error != null)
-          div(
-            styles: Styles(raw: <String, String>{
-              'padding': ArcaneSpacing.md,
-              'margin-bottom': ArcaneSpacing.md,
-              'background': 'rgba(239, 68, 68, 0.1)',
-              'border': '1px solid rgba(239, 68, 68, 0.3)',
-              'border-radius': 'var(--arcane-radius-md, 8px)',
-              'color': '#ef4444',
-              'font-size': ArcaneTypography.fontSm,
-            }),
-            <Component>[Component.text(_error!)],
+          ArcaneDiv(
+            styles: ArcaneStyleData(
+              padding: PaddingPreset.md,
+              margin: MarginPreset.bottomMd,
+              backgroundCustom: 'rgba(239, 68, 68, 0.1)',
+              borderCustom: '1px solid rgba(239, 68, 68, 0.3)',
+              borderRadius: Radius.md,
+              textColor: TextColor.error,
+              fontSize: FontSize.sm,
+            ),
+            children: <Component>[Component.text(_error!)],
           ),
 
         // Social sign-in buttons
         if (_hasSocialMethods) ...<Component>[
-          div(
-            styles: Styles(raw: <String, String>{
-              'display': 'flex',
-              'flex-direction': 'column',
-              'gap': ArcaneSpacing.sm,
-            }),
-            <Component>[
+          ArcaneDiv(
+            styles: ArcaneStyleData(
+              display: Display.flex,
+              flexDirection: FlexDirection.column,
+              gap: Gap.sm,
+            ),
+            children: <Component>[
               if (_hasGithubMethod)
                 GithubSignInButton(
                   label: 'Sign up with GitHub',
@@ -220,38 +221,38 @@ class _ArcaneSignupCardState extends State<ArcaneSignupCard> {
 
         // Divider
         if (_hasSocialMethods && _hasEmailMethod)
-          div(
-            styles: Styles(raw: <String, String>{
-              'display': 'flex',
-              'align-items': 'center',
-              'gap': ArcaneSpacing.md,
-              'margin': '${ArcaneSpacing.lg} 0',
-            }),
-            <Component>[
-              div(
-                styles: Styles(raw: <String, String>{
-                  'flex': '1',
-                  'height': '1px',
-                  'background': 'var(--arcane-border, #27272a)',
-                }),
-                <Component>[],
+          ArcaneDiv(
+            styles: ArcaneStyleData(
+              display: Display.flex,
+              alignItems: AlignItems.center,
+              gap: Gap.md,
+              margin: MarginPreset.verticalLg,
+            ),
+            children: <Component>[
+              ArcaneDiv(
+                styles: ArcaneStyleData(
+                  flexGrow: 1,
+                  heightCustom: '1px',
+                  backgroundCustom: ArcaneColors.border,
+                ),
+                children: <Component>[],
               ),
-              span(
-                styles: Styles(raw: <String, String>{
-                  'font-size': ArcaneTypography.fontXs,
-                  'color': 'var(--arcane-muted-foreground, #71717a)',
-                  'text-transform': 'uppercase',
-                  'letter-spacing': '0.05em',
-                }),
-                <Component>[Component.text('or continue with email')],
+              ArcaneDiv(
+                styles: ArcaneStyleData(
+                  fontSize: FontSize.xs,
+                  textColor: TextColor.muted,
+                  textTransform: TextTransform.uppercase,
+                  letterSpacing: LetterSpacing.wide,
+                ),
+                children: [Component.text('or continue with email')],
               ),
-              div(
-                styles: Styles(raw: <String, String>{
-                  'flex': '1',
-                  'height': '1px',
-                  'background': 'var(--arcane-border, #27272a)',
-                }),
-                <Component>[],
+              ArcaneDiv(
+                styles: ArcaneStyleData(
+                  flexGrow: 1,
+                  heightCustom: '1px',
+                  backgroundCustom: ArcaneColors.border,
+                ),
+                children: <Component>[],
               ),
             ],
           ),
@@ -272,7 +273,8 @@ class _ArcaneSignupCardState extends State<ArcaneSignupCard> {
                 type: 'text',
                 placeholder: 'Your name',
                 autocomplete: 'name',
-                onChanged: (String value) => setState(() => _displayName = value),
+                onChanged: (String value) =>
+                    setState(() => _displayName = value),
               ),
 
               // Email field
@@ -306,14 +308,14 @@ class _ArcaneSignupCardState extends State<ArcaneSignupCard> {
 
               // Terms checkbox
               if (_hasTerms)
-                div(
-                  styles: Styles(raw: <String, String>{
-                    'display': 'flex',
-                    'align-items': 'flex-start',
-                    'gap': ArcaneSpacing.sm,
-                    'margin-bottom': ArcaneSpacing.lg,
-                  }),
-                  <Component>[
+                ArcaneDiv(
+                  styles: ArcaneStyleData(
+                    display: Display.flex,
+                    alignItems: AlignItems.flexStart,
+                    gap: Gap.sm,
+                    margin: MarginPreset.bottomLg,
+                  ),
+                  children: <Component>[
                     input(
                       attributes: <String, String>{
                         'type': 'checkbox',
@@ -322,13 +324,15 @@ class _ArcaneSignupCardState extends State<ArcaneSignupCard> {
                       },
                       styles: Styles(raw: <String, String>{
                         'margin-top': '2px',
-                        'accent-color': 'var(--arcane-accent, #10b981)',
+                        'accent-color': ArcaneColors.accent,
                       }),
                       events: {
                         'change': (event) {
                           final dynamic target = event.target;
                           if (target != null) {
-                            setState(() => _acceptedTerms = (target as dynamic).checked ?? false);
+                            setState(() =>
+                                _acceptedTerms =
+                                    (target as dynamic).checked ?? false);
                           }
                         },
                       },
@@ -336,8 +340,8 @@ class _ArcaneSignupCardState extends State<ArcaneSignupCard> {
                     label(
                       attributes: <String, String>{'for': 'terms'},
                       styles: Styles(raw: <String, String>{
-                        'font-size': ArcaneTypography.fontSm,
-                        'color': 'var(--arcane-muted-foreground, #a1a1aa)',
+                        'font-size': ArcaneTypography.fontSizeSm,
+                        'color': ArcaneColors.muted,
                         'cursor': 'pointer',
                       }),
                       <Component>[
@@ -347,7 +351,7 @@ class _ArcaneSignupCardState extends State<ArcaneSignupCard> {
                             href: component.termsUrl!,
                             attributes: <String, String>{'target': '_blank'},
                             styles: Styles(raw: <String, String>{
-                              'color': 'var(--arcane-accent, #10b981)',
+                              'color': ArcaneColors.accent,
                               'text-decoration': 'none',
                             }),
                             <Component>[Component.text('Terms of Service')],
@@ -360,7 +364,7 @@ class _ArcaneSignupCardState extends State<ArcaneSignupCard> {
                             href: component.privacyUrl!,
                             attributes: <String, String>{'target': '_blank'},
                             styles: Styles(raw: <String, String>{
-                              'color': 'var(--arcane-accent, #10b981)',
+                              'color': ArcaneColors.accent,
                               'text-decoration': 'none',
                             }),
                             <Component>[Component.text('Privacy Policy')],
@@ -371,7 +375,7 @@ class _ArcaneSignupCardState extends State<ArcaneSignupCard> {
                 ),
 
               // Submit button
-              ArcaneButton.primary(
+              ArcaneButton(
                 label: _loading ? 'Creating account...' : 'Create account',
                 fullWidth: true,
                 disabled: _loading,
@@ -383,21 +387,21 @@ class _ArcaneSignupCardState extends State<ArcaneSignupCard> {
 
         // Login link
         if (component.loginRoute != null)
-          div(
-            styles: Styles(raw: <String, String>{
-              'margin-top': ArcaneSpacing.lg,
-              'text-align': 'center',
-              'font-size': ArcaneTypography.fontSm,
-              'color': 'var(--arcane-muted-foreground, #a1a1aa)',
-            }),
-            <Component>[
+          ArcaneDiv(
+            styles: ArcaneStyleData(
+              margin: MarginPreset.topLg,
+              textAlign: TextAlign.center,
+              fontSize: FontSize.sm,
+              textColor: TextColor.muted,
+            ),
+            children: <Component>[
               Component.text('Already have an account? '),
               a(
                 href: component.loginRoute!,
                 styles: Styles(raw: <String, String>{
-                  'color': 'var(--arcane-accent, #10b981)',
+                  'color': ArcaneColors.accent,
                   'text-decoration': 'none',
-                  'font-weight': ArcaneTypography.weightMedium,
+                  'font-weight': '500',
                 }),
                 <Component>[Component.text('Sign in')],
               ),
@@ -415,16 +419,16 @@ class _ArcaneSignupCardState extends State<ArcaneSignupCard> {
     required void Function(String) onChanged,
     String? hint,
   }) {
-    return div(
-      styles: Styles(raw: <String, String>{'margin-bottom': ArcaneSpacing.md}),
-      <Component>[
+    return ArcaneDiv(
+      styles: ArcaneStyleData(margin: MarginPreset.bottomMd),
+      children: <Component>[
         label(
           styles: Styles(raw: <String, String>{
             'display': 'block',
             'margin-bottom': ArcaneSpacing.xs,
-            'font-size': ArcaneTypography.fontSm,
-            'font-weight': ArcaneTypography.weightMedium,
-            'color': 'var(--arcane-on-surface, #fafafa)',
+            'font-size': ArcaneTypography.fontSizeSm,
+            'font-weight': '500',
+            'color': ArcaneColors.onBackground,
           }),
           <Component>[Component.text(labelText)],
         ),
@@ -438,13 +442,13 @@ class _ArcaneSignupCardState extends State<ArcaneSignupCard> {
           styles: Styles(raw: <String, String>{
             'width': '100%',
             'padding': '${ArcaneSpacing.sm} ${ArcaneSpacing.md}',
-            'font-size': ArcaneTypography.fontSm,
-            'background': 'var(--arcane-input, #27272a)',
-            'border': '1px solid var(--arcane-border, #3f3f46)',
-            'border-radius': 'var(--arcane-radius-md, 8px)',
-            'color': 'var(--arcane-on-surface, #fafafa)',
+            'font-size': ArcaneTypography.fontSizeSm,
+            'background': ArcaneColors.backgroundSecondary,
+            'border': '1px solid ${ArcaneColors.border}',
+            'border-radius': ArcaneRadius.md,
+            'color': ArcaneColors.onBackground,
             'outline': 'none',
-            'transition': 'border-color 150ms ease',
+            'transition': ArcaneEffects.transitionFast,
             'box-sizing': 'border-box',
           }),
           events: {
@@ -452,20 +456,19 @@ class _ArcaneSignupCardState extends State<ArcaneSignupCard> {
               final dynamic target = event.target;
               if (target != null) {
                 final String value = (target as dynamic).value ?? '';
-                print('[SignupCard] Input changed for $labelText: "$value"');
                 onChanged(value);
               }
             },
           },
         ),
         if (hint != null)
-          p(
-            styles: Styles(raw: <String, String>{
-              'margin': '${ArcaneSpacing.xs} 0 0 0',
-              'font-size': ArcaneTypography.fontXs,
-              'color': 'var(--arcane-muted-foreground, #71717a)',
-            }),
-            <Component>[Component.text(hint)],
+          ArcaneDiv(
+            styles: ArcaneStyleData(
+              margin: MarginPreset.topXs,
+              fontSize: FontSize.xs,
+              textColor: TextColor.muted,
+            ),
+            children: [Component.text(hint)],
           ),
       ],
     );

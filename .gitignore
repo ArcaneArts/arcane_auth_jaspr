@@ -31,3 +31,7 @@ build/
 private_example/
 
 privateexample/
+
+.claude/
+
+CLAUDE.md

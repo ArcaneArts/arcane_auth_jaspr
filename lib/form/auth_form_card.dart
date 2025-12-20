@@ -27,37 +27,36 @@ class AuthFormCard extends StatelessComponent {
 
   @override
   Component build(BuildContext context) {
-    return div(
-      styles: Styles(raw: {
-        'width': '100%',
-      }),
-      [
+    return ArcaneDiv(
+      styles: ArcaneStyleData(
+        width: Size.full,
+      ),
+      children: [
         // Header
-        div(
-          styles: Styles(raw: {
-            'margin-bottom': '32px',
-            'text-align': 'center',
-          }),
-          [
-            h1(
-              styles: Styles(raw: {
-                'font-size': '28px',
-                'font-weight': '700',
-                'color': '#fafafa',
-                'margin': '0 0 8px 0',
-                'letter-spacing': '-0.02em',
-              }),
-              [Component.text(title)],
+        ArcaneDiv(
+          styles: ArcaneStyleData(
+            margin: MarginPreset.bottomXl,
+            textAlign: TextAlign.center,
+          ),
+          children: [
+            ArcaneDiv(
+              styles: ArcaneStyleData(
+                fontSize: FontSize.xl2,
+                fontWeight: FontWeight.bold,
+                textColor: TextColor.primary,
+                margin: MarginPreset.bottomXs,
+                letterSpacing: LetterSpacing.tight,
+              ),
+              children: [Component.text(title)],
             ),
             if (subtitle != null)
-              p(
-                styles: Styles(raw: {
-                  'font-size': '15px',
-                  'color': '#71717a',
-                  'margin': '0',
-                  'line-height': '1.5',
-                }),
-                [Component.text(subtitle!)],
+              ArcaneDiv(
+                styles: ArcaneStyleData(
+                  fontSize: FontSize.sm,
+                  textColor: TextColor.muted,
+                  lineHeight: LineHeight.normal,
+                ),
+                children: [Component.text(subtitle!)],
               ),
           ],
         ),
@@ -65,12 +64,12 @@ class AuthFormCard extends StatelessComponent {
         child,
         // Footer
         if (footer != null)
-          div(
-            styles: Styles(raw: {
-              'margin-top': '24px',
-              'text-align': 'center',
-            }),
-            [footer!],
+          ArcaneDiv(
+            styles: ArcaneStyleData(
+              margin: MarginPreset.topLg,
+              textAlign: TextAlign.center,
+            ),
+            children: [footer!],
           ),
       ],
     );

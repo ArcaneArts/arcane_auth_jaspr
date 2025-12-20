@@ -39,28 +39,28 @@ class AuthBrandingPanel extends StatelessComponent {
 
   @override
   Component build(BuildContext context) {
-    return div(
-      styles: Styles(raw: {
-        'display': 'flex',
-        'flex-direction': 'column',
-        'justify-content': 'center',
-        'height': '100%',
-      }),
-      [
+    return ArcaneDiv(
+      styles: ArcaneStyleData(
+        display: Display.flex,
+        flexDirection: FlexDirection.column,
+        justifyContent: JustifyContent.center,
+        height: Size.full,
+      ),
+      children: [
         // Logo
         if (logoUrl != null)
-          div(
-            styles: Styles(raw: {
-              'margin-bottom': '40px',
-            }),
-            [
+          ArcaneDiv(
+            styles: ArcaneStyleData(
+              margin: MarginPreset.bottomXxl,
+            ),
+            children: [
               img(
                 src: logoUrl!,
                 alt: 'Logo',
                 styles: Styles(raw: {
                   'width': '48px',
                   'height': '48px',
-                  'border-radius': '12px',
+                  'border-radius': ArcaneRadius.lg,
                   'object-fit': 'contain',
                 }),
               ),
@@ -68,67 +68,65 @@ class AuthBrandingPanel extends StatelessComponent {
           ),
 
         // Tagline
-        h2(
-          styles: Styles(raw: {
-            'font-size': '36px',
-            'font-weight': '700',
-            'color': '#fafafa',
-            'margin': '0 0 16px 0',
-            'line-height': '1.2',
-            'letter-spacing': '-0.02em',
-          }),
-          [Component.text(tagline)],
+        ArcaneDiv(
+          styles: ArcaneStyleData(
+            fontSize: FontSize.xl3,
+            fontWeight: FontWeight.bold,
+            textColor: TextColor.primary,
+            margin: MarginPreset.bottomMd,
+            lineHeight: LineHeight.tight,
+            letterSpacing: LetterSpacing.tight,
+          ),
+          children: [Component.text(tagline)],
         ),
 
         // Description
         if (description != null)
-          p(
-            styles: Styles(raw: {
-              'font-size': '16px',
-              'color': '#a1a1aa',
-              'margin': '0 0 32px 0',
-              'line-height': '1.6',
-            }),
-            [Component.text(description!)],
+          ArcaneDiv(
+            styles: ArcaneStyleData(
+              fontSize: FontSize.base,
+              textColor: TextColor.muted,
+              margin: MarginPreset.bottomXl,
+              lineHeight: LineHeight.relaxed,
+            ),
+            children: [Component.text(description!)],
           ),
 
         // Features list
         if (features != null && features!.isNotEmpty)
-          div(
-            styles: Styles(raw: {
-              'display': 'flex',
-              'flex-direction': 'column',
-              'gap': '16px',
-              'margin-bottom': '40px',
-            }),
-            [
-              for (final feature in features!)
-                _buildFeatureItem(feature),
+          ArcaneDiv(
+            styles: ArcaneStyleData(
+              display: Display.flex,
+              flexDirection: FlexDirection.column,
+              gap: Gap.md,
+              margin: MarginPreset.bottomXxl,
+            ),
+            children: [
+              for (final feature in features!) _buildFeatureItem(feature),
             ],
           ),
 
         // Testimonial
-        if (testimonialQuote != null)
-          _buildTestimonial(),
+        if (testimonialQuote != null) _buildTestimonial(),
       ],
     );
   }
 
   Component _buildFeatureItem(String text) {
-    return div(
-      styles: Styles(raw: {
-        'display': 'flex',
-        'align-items': 'flex-start',
-        'gap': '12px',
-      }),
-      [
+    return ArcaneDiv(
+      styles: ArcaneStyleData(
+        display: Display.flex,
+        alignItems: AlignItems.flexStart,
+        gap: Gap.sm,
+      ),
+      children: [
         // Checkmark icon
         div(
           styles: Styles(raw: {
             'width': '20px',
             'height': '20px',
-            'border-radius': '50%',
-            'background': 'var(--qn-glow-light, rgba(5, 150, 105, 0.1))',
+            'border-radius': ArcaneRadius.full,
+            'background': ArcaneColors.accentContainer,
             'display': 'flex',
             'align-items': 'center',
             'justify-content': 'center',
@@ -137,20 +135,20 @@ class AuthBrandingPanel extends StatelessComponent {
           }),
           [
             RawText('''
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="color: var(--qn-primary, #059669)">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="color: ${ArcaneColors.accent}">
                 <polyline points="20 6 9 17 4 12"></polyline>
               </svg>
             '''),
           ],
         ),
         // Feature text
-        span(
-          styles: Styles(raw: {
-            'font-size': '15px',
-            'color': '#d4d4d8',
-            'line-height': '1.5',
-          }),
-          [Component.text(text)],
+        ArcaneDiv(
+          styles: ArcaneStyleData(
+            fontSize: FontSize.sm,
+            textColor: TextColor.primary,
+            lineHeight: LineHeight.normal,
+          ),
+          children: [Component.text(text)],
         ),
       ],
     );
@@ -159,67 +157,70 @@ class AuthBrandingPanel extends StatelessComponent {
   Component _buildTestimonial() {
     return div(
       styles: Styles(raw: {
-        'padding': '24px',
+        'padding': ArcaneSpacing.lg,
         'background': 'rgba(24, 24, 27, 0.5)',
-        'border': '1px solid #27272a',
-        'border-radius': '12px',
+        'border': '1px solid ${ArcaneColors.border}',
+        'border-radius': ArcaneRadius.lg,
         'margin-top': 'auto',
       }),
       [
         // Quote
-        p(
-          styles: Styles(raw: {
-            'font-size': '15px',
-            'color': '#d4d4d8',
-            'margin': '0 0 16px 0',
-            'line-height': '1.6',
-            'font-style': 'italic',
-          }),
-          [Component.text('"$testimonialQuote"')],
+        ArcaneDiv(
+          styles: ArcaneStyleData(
+            fontSize: FontSize.sm,
+            textColor: TextColor.primary,
+            margin: MarginPreset.bottomMd,
+            lineHeight: LineHeight.relaxed,
+            fontStyle: FontStyle.italic,
+          ),
+          children: [Component.text('"$testimonialQuote"')],
         ),
         // Author
         if (testimonialAuthor != null)
-          div(
-            styles: Styles(raw: {
-              'display': 'flex',
-              'align-items': 'center',
-              'gap': '12px',
-            }),
-            [
+          ArcaneDiv(
+            styles: ArcaneStyleData(
+              display: Display.flex,
+              alignItems: AlignItems.center,
+              gap: Gap.sm,
+            ),
+            children: [
               // Avatar placeholder
               div(
                 styles: Styles(raw: {
                   'width': '36px',
                   'height': '36px',
-                  'border-radius': '50%',
-                  'background': 'var(--qn-gradient, linear-gradient(135deg, #059669 0%, #0891B2 100%))',
+                  'border-radius': ArcaneRadius.full,
+                  'background':
+                      'linear-gradient(135deg, ${ArcaneColors.accent} 0%, #0891B2 100%)',
                   'display': 'flex',
                   'align-items': 'center',
                   'justify-content': 'center',
-                  'font-size': '14px',
+                  'font-size': ArcaneTypography.fontSizeSm,
                   'font-weight': '600',
-                  'color': '#ffffff',
+                  'color': ArcaneColors.white,
                 }),
                 [Component.text(testimonialAuthor![0].toUpperCase())],
               ),
-              div([
-                div(
-                  styles: Styles(raw: {
-                    'font-size': '14px',
-                    'font-weight': '600',
-                    'color': '#fafafa',
-                  }),
-                  [Component.text(testimonialAuthor!)],
-                ),
-                if (testimonialTitle != null)
-                  div(
-                    styles: Styles(raw: {
-                      'font-size': '13px',
-                      'color': '#71717a',
-                    }),
-                    [Component.text(testimonialTitle!)],
+              ArcaneDiv(
+                children: [
+                  ArcaneDiv(
+                    styles: ArcaneStyleData(
+                      fontSize: FontSize.sm,
+                      fontWeight: FontWeight.w600,
+                      textColor: TextColor.primary,
+                    ),
+                    children: [Component.text(testimonialAuthor!)],
                   ),
-              ]),
+                  if (testimonialTitle != null)
+                    ArcaneDiv(
+                      styles: ArcaneStyleData(
+                        fontSize: FontSize.xs,
+                        textColor: TextColor.muted,
+                      ),
+                      children: [Component.text(testimonialTitle!)],
+                    ),
+                ],
+              ),
             ],
           ),
       ],

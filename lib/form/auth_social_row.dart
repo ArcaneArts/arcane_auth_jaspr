@@ -32,24 +32,25 @@ class AuthSocialRow extends StatelessComponent {
   @override
   Component build(BuildContext context) {
     // Filter to only social methods
-    final socialMethods = methods.where((m) =>
-        m == AuthMethod.github ||
-        m == AuthMethod.google ||
-        m == AuthMethod.apple).toList();
+    final socialMethods = methods
+        .where((m) =>
+            m == AuthMethod.github ||
+            m == AuthMethod.google ||
+            m == AuthMethod.apple)
+        .toList();
 
     if (socialMethods.isEmpty) {
-      return div([]);
+      return ArcaneDiv(children: []);
     }
 
-    return div(
-      styles: Styles(raw: {
-        'display': 'flex',
-        'gap': '12px',
-        'justify-content': 'center',
-      }),
-      [
-        for (final method in socialMethods)
-          _buildSocialButton(method),
+    return ArcaneDiv(
+      styles: ArcaneStyleData(
+        display: Display.flex,
+        gap: Gap.md,
+        justifyContent: JustifyContent.center,
+      ),
+      children: [
+        for (final method in socialMethods) _buildSocialButton(method),
       ],
     );
   }
@@ -89,17 +90,17 @@ class AuthSocialRow extends StatelessComponent {
         );
 
       default:
-        return div([]);
+        return ArcaneDiv(children: []);
     }
   }
 
   Component _wrapButton(Component buttonContent, AuthMethod method) {
-    return div(
-      styles: Styles(raw: {
-        'flex': '1',
-        'max-width': '120px',
-      }),
-      [
+    return ArcaneDiv(
+      styles: ArcaneStyleData(
+        flexGrow: 1,
+        maxWidthCustom: '120px',
+      ),
+      children: [
         button(
           disabled: disabled || loading,
           events: {
@@ -115,15 +116,15 @@ class AuthSocialRow extends StatelessComponent {
             'align-items': 'center',
             'justify-content': 'center',
             'padding': '12px 24px',
-            'font-size': '14px',
+            'font-size': ArcaneTypography.fontSizeSm,
             'font-weight': '500',
             'font-family': 'inherit',
-            'color': '#fafafa',
-            'background': '#18181b',
-            'border': '1px solid #27272a',
-            'border-radius': '8px',
+            'color': ArcaneColors.onBackground,
+            'background': ArcaneColors.surface,
+            'border': '1px solid ${ArcaneColors.border}',
+            'border-radius': ArcaneRadius.md,
             'cursor': disabled || loading ? 'not-allowed' : 'pointer',
-            'transition': 'all 0.2s ease',
+            'transition': ArcaneEffects.transitionNormal,
             'opacity': disabled ? '0.5' : '1',
           }),
           [
@@ -161,7 +162,7 @@ class AuthSocialRow extends StatelessComponent {
         ''');
 
       default:
-        return div([]);
+        return ArcaneDiv(children: []);
     }
   }
 }

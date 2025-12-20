@@ -31,13 +31,13 @@ class AuthSplitLayout extends StatelessComponent {
     final leftPanel = _buildBrandingPanel();
     final rightPanel = _buildFormPanel();
 
-    return div(
-      styles: Styles(raw: {
-        'display': 'flex',
-        'min-height': '100vh',
-        'background': '#09090b',
-      }),
-      [
+    return ArcaneDiv(
+      styles: ArcaneStyleData(
+        display: Display.flex,
+        minHeight: '100vh',
+        background: Background.background,
+      ),
+      children: [
         // Branding panel (hidden on mobile)
         if (!reverseSides) leftPanel else rightPanel,
         // Form panel
@@ -47,28 +47,28 @@ class AuthSplitLayout extends StatelessComponent {
   }
 
   Component _buildBrandingPanel() {
+    // Using raw div for complex media query styling
     return div(
       styles: Styles(raw: {
         'flex': '1',
         'display': 'flex',
         'flex-direction': 'column',
         'justify-content': 'center',
-        'padding': '48px',
+        'padding': ArcaneSpacing.xxxl,
         'position': 'relative',
         'overflow': 'hidden',
-        'background': '#0a0a0c',
-        // Hide on mobile
-        '@media (max-width: 1024px)': 'display: none',
+        'background': ArcaneColors.backgroundSecondary,
       }),
+      classes: 'auth-branding-panel',
       [
         // Background gradient glow
-        div(
-          styles: Styles(raw: {
-            'position': 'absolute',
-            'inset': '0',
-            'pointer-events': 'none',
-          }),
-          [
+        ArcaneDiv(
+          styles: ArcaneStyleData(
+            position: Position.absolute,
+            inset: '0',
+            pointerEvents: PointerEvents.none,
+          ),
+          children: [
             // Top-left green glow
             div(
               styles: Styles(raw: {
@@ -78,7 +78,7 @@ class AuthSplitLayout extends StatelessComponent {
                 'width': '60%',
                 'height': '60%',
                 'background':
-                    'radial-gradient(circle, var(--qn-glow-light, rgba(5, 150, 105, 0.1)) 0%, transparent 70%)',
+                    'radial-gradient(circle, ${ArcaneColors.accentContainer} 0%, transparent 70%)',
               }),
               [],
             ),
@@ -109,49 +109,49 @@ class AuthSplitLayout extends StatelessComponent {
           ],
         ),
         // Content
-        div(
-          styles: Styles(raw: {
-            'position': 'relative',
-            'z-index': '1',
-            'max-width': '480px',
-            'margin': '0 auto',
-          }),
-          [brandingContent],
+        ArcaneDiv(
+          styles: ArcaneStyleData(
+            position: Position.relative,
+            zIndex: ZIndex.base,
+            maxWidth: MaxWidth.form,
+            margin: MarginPreset.auto,
+          ),
+          children: [brandingContent],
         ),
       ],
     );
   }
 
   Component _buildFormPanel() {
-    return div(
-      styles: Styles(raw: {
-        'flex': '1',
-        'display': 'flex',
-        'flex-direction': 'column',
-        'justify-content': 'center',
-        'align-items': 'center',
-        'padding': '48px 24px',
-        'background': '#09090b',
-        'min-height': '100vh',
-      }),
-      [
+    return ArcaneDiv(
+      styles: ArcaneStyleData(
+        flexGrow: 1,
+        display: Display.flex,
+        flexDirection: FlexDirection.column,
+        justifyContent: JustifyContent.center,
+        alignItems: AlignItems.center,
+        padding: PaddingPreset.lgXl,
+        background: Background.background,
+        minHeight: '100vh',
+      ),
+      children: [
         // Mobile header (only shown on mobile when branding panel is hidden)
         if (mobileHeader != null)
           div(
             styles: Styles(raw: {
               'display': 'none',
-              'margin-bottom': '32px',
-              '@media (max-width: 1024px)': 'display: block',
+              'margin-bottom': ArcaneSpacing.xl,
             }),
+            classes: 'auth-mobile-header',
             [mobileHeader!],
           ),
         // Form content
-        div(
-          styles: Styles(raw: {
-            'width': '100%',
-            'max-width': '420px',
-          }),
-          [formContent],
+        ArcaneDiv(
+          styles: ArcaneStyleData(
+            width: Size.full,
+            maxWidthCustom: '420px',
+          ),
+          children: [formContent],
         ),
       ],
     );

@@ -10,7 +10,7 @@ environment:
 
 dependencies:
   jaspr: ^0.22.0
-  arcane_jaspr: 1.0.0
+  arcane_jaspr: ^2.0.0
   web: ^1.1.1
   http: ^1.6.0
   meta: ^1.17.0

@@ -72,14 +72,14 @@ class AuthButton extends StatelessComponent {
       'display': 'inline-flex',
       'align-items': 'center',
       'justify-content': 'center',
-      'gap': '8px',
+      'gap': ArcaneSpacing.xs,
       'padding': '12px 24px',
-      'font-size': '15px',
+      'font-size': ArcaneTypography.fontSizeSm,
       'font-weight': '600',
       'font-family': 'inherit',
-      'border-radius': '8px',
+      'border-radius': ArcaneRadius.md,
       'cursor': disabled || loading ? 'not-allowed' : 'pointer',
-      'transition': 'all 0.2s ease',
+      'transition': ArcaneEffects.transitionNormal,
       'position': 'relative',
       'width': fullWidth ? '100%' : 'auto',
       'opacity': disabled ? '0.5' : '1',
@@ -89,25 +89,26 @@ class AuthButton extends StatelessComponent {
       case AuthButtonVariant.primary:
         return {
           ...baseStyles,
-          'background': 'var(--qn-gradient, linear-gradient(135deg, #059669 0%, #0891B2 100%))',
-          'color': '#ffffff',
+          'background':
+              'linear-gradient(135deg, ${ArcaneColors.accent} 0%, #0891B2 100%)',
+          'color': ArcaneColors.white,
           'border': 'none',
-          'box-shadow': '0 0 20px var(--qn-glow, rgba(5, 150, 105, 0.35))',
+          'box-shadow': '0 0 20px ${ArcaneColors.accentContainer}',
         };
 
       case AuthButtonVariant.secondary:
         return {
           ...baseStyles,
           'background': 'transparent',
-          'color': '#fafafa',
-          'border': '1px solid #27272a',
+          'color': ArcaneColors.onBackground,
+          'border': '1px solid ${ArcaneColors.border}',
         };
 
       case AuthButtonVariant.ghost:
         return {
           ...baseStyles,
           'background': 'transparent',
-          'color': '#a1a1aa',
+          'color': ArcaneColors.muted,
           'border': 'none',
           'padding': '8px 16px',
         };
@@ -115,23 +116,23 @@ class AuthButton extends StatelessComponent {
   }
 
   Component _buildSpinner() {
-    return div(
-      styles: Styles(raw: {
-        'position': 'absolute',
-        'display': 'flex',
-        'align-items': 'center',
-        'justify-content': 'center',
-      }),
-      [
+    return ArcaneDiv(
+      styles: ArcaneStyleData(
+        position: Position.absolute,
+        display: Display.flex,
+        alignItems: AlignItems.center,
+        justifyContent: JustifyContent.center,
+      ),
+      children: [
         div(
           styles: Styles(raw: {
             'width': '18px',
             'height': '18px',
             'border': '2px solid transparent',
             'border-top-color': variant == AuthButtonVariant.primary
-                ? '#ffffff'
-                : 'var(--qn-primary, #059669)',
-            'border-radius': '50%',
+                ? ArcaneColors.white
+                : ArcaneColors.accent,
+            'border-radius': ArcaneRadius.full,
             'animation': 'spin 0.8s linear infinite',
           }),
           [],

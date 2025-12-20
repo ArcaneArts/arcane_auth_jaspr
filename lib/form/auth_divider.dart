@@ -15,41 +15,41 @@ class AuthDivider extends StatelessComponent {
 
   @override
   Component build(BuildContext context) {
-    return div(
-      styles: Styles(raw: {
-        'display': 'flex',
-        'align-items': 'center',
-        'gap': '16px',
-        'margin': '24px 0',
-      }),
-      [
+    return ArcaneDiv(
+      styles: ArcaneStyleData(
+        display: Display.flex,
+        alignItems: AlignItems.center,
+        gap: Gap.md,
+        margin: MarginPreset.verticalLg,
+      ),
+      children: [
         // Left line
-        div(
-          styles: Styles(raw: {
-            'flex': '1',
-            'height': '1px',
-            'background': '#27272a',
-          }),
-          [],
+        ArcaneDiv(
+          styles: ArcaneStyleData(
+            flexGrow: 1,
+            heightCustom: '1px',
+            backgroundCustom: ArcaneColors.border,
+          ),
+          children: [],
         ),
         // Text
-        span(
-          styles: Styles(raw: {
-            'font-size': '13px',
-            'color': '#71717a',
-            'text-transform': 'lowercase',
-            'white-space': 'nowrap',
-          }),
-          [Component.text(text)],
+        ArcaneDiv(
+          styles: ArcaneStyleData(
+            fontSize: FontSize.xs,
+            textColor: TextColor.muted,
+            textTransform: TextTransform.lowercase,
+            whiteSpace: WhiteSpace.nowrap,
+          ),
+          children: [Component.text(text)],
         ),
         // Right line
-        div(
-          styles: Styles(raw: {
-            'flex': '1',
-            'height': '1px',
-            'background': '#27272a',
-          }),
-          [],
+        ArcaneDiv(
+          styles: ArcaneStyleData(
+            flexGrow: 1,
+            heightCustom: '1px',
+            backgroundCustom: ArcaneColors.border,
+          ),
+          children: [],
         ),
       ],
     );
